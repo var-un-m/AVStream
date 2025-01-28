@@ -1,0 +1,8 @@
+opencv-python
+websockets
+numpy
+screeninfo
+argparse
+pyaudio
+asyncio
+opencv-python
