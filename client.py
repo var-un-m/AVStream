@@ -8,6 +8,7 @@ import json
 import base64
 import multiprocessing as mp
 from datetime import datetime, timedelta
+import time
 
 
 class AudioStreamClient:
@@ -17,13 +18,17 @@ class AudioStreamClient:
         self.stream = self.p.open(format=self.p.get_format_from_width(4),
                             channels=1,
                             rate=16000,
-                            output=True)       
+                            output=True)     
+        self.frames = 0
+        self.time_per_frame = 0
        
     async def stream_audio(self, server_ip):
         uri = f"ws://{server_ip}" 
+        print("CONNECTED")
         async with websockets.connect(uri) as websocket:
             while True:
                 try:
+                    s = time.time()
                     response = json.loads(await websocket.recv())
                 
                     frame_data = base64.b64decode(response['frame'])
@@ -32,6 +37,7 @@ class AudioStreamClient:
 
                     audio_data = base64.b64decode(response['audio'])
                     self.stream.write(audio_data)
+                    print(f"FPS: {1/(time.time() - s):.2f}", end='\r')
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
                 except Exception as e:
